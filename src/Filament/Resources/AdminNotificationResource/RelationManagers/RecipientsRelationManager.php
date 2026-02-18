@@ -43,13 +43,11 @@ class RecipientsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('pivot.read_at')
                     ->label('Read At')
                     ->dateTime()
-                    ->placeholder('Not read yet')
-                    ->sortable(),
+                    ->placeholder('Not read yet'),
 
                 Tables\Columns\TextColumn::make('pivot.created_at')
                     ->label('Received At')
-                    ->dateTime()
-                    ->sortable(),
+                    ->dateTime(),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('read_at')
@@ -71,7 +69,6 @@ class RecipientsRelationManager extends RelationManager
             ->bulkActions([
                 // No bulk actions
             ])
-            ->defaultSort('pivot.created_at', 'desc')
             ->emptyStateHeading('No Recipients')
             ->emptyStateDescription('This notification has no recipients assigned.')
             ->emptyStateIcon('heroicon-o-users');

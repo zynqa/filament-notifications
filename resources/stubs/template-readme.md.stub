@@ -1,0 +1,79 @@
+# Email Notification Templates
+
+This directory contains email templates for admin notifications sent through the Filament Notifications package.
+
+## Available Variables
+
+All templates have access to the following variables passed from the notification:
+
+- **$title** (string) - The notification title
+- **$body** (string) - The notification body text
+- **$url** (string|null) - Optional action URL (may be null)
+- **$notification_type** (string) - Type: 'info', 'success', 'warning', or 'danger'
+- **$icon** (string) - Heroicon name (e.g., 'heroicon-o-bell')
+- **$icon_color** (string) - Icon color: 'primary', 'success', 'warning', 'danger', 'info', 'gray'
+
+## Creating Custom Templates
+
+1. Create a new `.blade.php` file in this directory
+2. Use the variables listed above in your template
+3. The template will automatically appear in the General Settings dropdown
+4. Name the file descriptively (e.g., `urgent-notification.blade.php`, `weekly-digest.blade.php`)
+
+## Example: Simple Template
+
+```blade
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ $title }}</title>
+</head>
+<body>
+    <h1>{{ $title }}</h1>
+    <p>{{ $body }}</p>
+
+    @if($url)
+        <a href="{{ $url }}">Click Here</a>
+    @endif
+
+    <footer>
+        <p>Sent from {{ config('app.name') }}</p>
+    </footer>
+</body>
+</html>
+```
+
+## Example: Styled Template
+
+```blade
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ $title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .alert-{{ $notification_type }} {
+            background-color: {{ $notification_type === 'danger' ? '#fee' : '#efe' }};
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="alert-{{ $notification_type }}">
+            <h1>{{ $title }}</h1>
+            <p>{{ $body }}</p>
+        </div>
+    </div>
+</body>
+</html>
+```
+
+## Tips
+
+- Use inline CSS for best email client compatibility
+- Test templates across different email clients
+- Keep design simple and mobile-friendly
+- Always escape user content with `e()` or `{!! nl2br(e($body)) !!}` for multi-line text
+- Use `@if($url)` to conditionally show action buttons

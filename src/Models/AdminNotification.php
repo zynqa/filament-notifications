@@ -23,6 +23,7 @@ class AdminNotification extends Model
         'icon_color',
         'notification_type',
         'url',
+        'delivery_method',
         'created_by',
         'sent_at',
     ];
@@ -51,7 +52,7 @@ class AdminNotification extends Model
         return $this->belongsToMany($userModel, 'notification_recipients', 'admin_notification_id', 'user_id')
             ->withPivot('read_at')
             ->withTimestamps()
-            ->orderByPivot('created_at', 'desc');
+            ->orderBy('notification_recipients.created_at', 'desc');
     }
 
     /**
@@ -108,6 +109,27 @@ class AdminNotification extends Model
     public function getTotalRecipientsAttribute(): int
     {
         return $this->recipients()->count();
+    }
+
+    /**
+     * Send this notification to all attached recipients.
+     * For email-only delivery, auto-marks pivot read_at since there is no bell to click.
+     */
+    public function sendToRecipients(): void
+    {
+        $this->update(['sent_at' => now()]);
+
+        foreach ($this->recipients as $user) {
+            $user->notify(new \Zynqa\FilamentNotifications\Notifications\AdminBroadcastNotification($this));
+        }
+
+        // Email has no read-tracking mechanism; mark pivot as read immediately on send
+        if ($this->delivery_method === 'email') {
+            \Illuminate\Support\Facades\DB::table('notification_recipients')
+                ->where('admin_notification_id', $this->id)
+                ->whereNull('read_at')
+                ->update(['read_at' => now()]);
+        }
     }
 
     /**

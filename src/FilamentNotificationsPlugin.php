@@ -7,7 +7,11 @@ namespace Zynqa\FilamentNotifications;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Filament\Support\Concerns\EvaluatesClosures;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\HtmlString;
 use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource;
 use Zynqa\FilamentNotifications\Models\AdminNotification;
 use Zynqa\FilamentNotifications\Policies\AdminNotificationPolicy;
@@ -34,6 +38,13 @@ class FilamentNotificationsPlugin implements Plugin
         Gate::policy(
             AdminNotification::class,
             AdminNotificationPolicy::class
+        );
+
+        // Inject the invisible Livewire component that syncs notification_recipients.read_at
+        // when Filament's markedNotificationAsRead event fires (raw query bypasses model events)
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::BODY_END,
+            fn (): HtmlString => new HtmlString(Blade::render('<livewire:notification-read-sync />')),
         );
     }
 

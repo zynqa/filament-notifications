@@ -6,8 +6,11 @@ namespace Zynqa\FilamentNotifications\Notifications;
 
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Zynqa\FilamentNotifications\Models\AdminNotification;
+use Zynqa\FilamentNotifications\Services\MailTemplateService;
+use Zynqa\FilamentNotifications\Settings\NotificationSettings;
 
 class AdminBroadcastNotification extends Notification
 {
@@ -24,7 +27,12 @@ class AdminBroadcastNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return match ($this->adminNotification->delivery_method) {
+            'database' => ['database'],
+            'email' => ['mail'],
+            'both' => ['database', 'mail'],
+            default => ['database'],
+        };
     }
 
     /**
@@ -79,7 +87,40 @@ class AdminBroadcastNotification extends Notification
             ->actions($actions)
             ->persistent();
 
-        return $filamentNotification->getDatabaseMessage();
+        $message = $filamentNotification->getDatabaseMessage();
+
+        // Merge admin_notification_id so the read-sync observer in the service provider
+        // can correlate this DatabaseNotification back to notification_recipients.read_at
+        $message['admin_notification_id'] = $this->adminNotification->id;
+
+        return $message;
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        // Get template from settings
+        $settings = app(NotificationSettings::class);
+        $templateName = $settings->default_email_template;
+
+        // Validate template exists, fallback to default
+        if (! MailTemplateService::templateExists($templateName)) {
+            $templateName = 'default.blade.php';
+        }
+
+        return (new MailMessage)
+            ->subject($this->adminNotification->title)
+            ->view('filament-notifications::emails.notification', [
+                'title' => $this->adminNotification->title,
+                'body' => $this->adminNotification->body,
+                'url' => $this->adminNotification->url,
+                'notification_type' => $this->adminNotification->notification_type,
+                'icon' => $this->adminNotification->icon,
+                'icon_color' => $this->adminNotification->icon_color,
+                'templateName' => $templateName,
+            ]);
     }
 
     /**
@@ -97,6 +138,7 @@ class AdminBroadcastNotification extends Notification
             'icon' => $this->adminNotification->icon,
             'icon_color' => $this->adminNotification->icon_color,
             'url' => $this->adminNotification->url,
+            'delivery_method' => $this->adminNotification->delivery_method,
         ];
     }
 }

@@ -10,7 +10,6 @@ use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource;
-use Zynqa\FilamentNotifications\Notifications\AdminBroadcastNotification;
 
 class ViewAdminNotification extends ViewRecord
 {
@@ -28,25 +27,16 @@ class ViewAdminNotification extends ViewRecord
                 ->modalDescription(fn () => "Send this notification to {$this->record->recipients->count()} user(s)?")
                 ->modalSubmitActionLabel('Send Notification')
                 ->action(function () {
-                    // Mark as sent
-                    $this->record->update(['sent_at' => now()]);
+                    $count = $this->record->recipients->count();
+                    $this->record->sendToRecipients();
 
-                    // Send to each recipient
-                    foreach ($this->record->recipients as $user) {
-                        $user->notify(new AdminBroadcastNotification($this->record));
-                    }
-
-                    // Success notification
                     Notification::make()
                         ->title('Notification Sent Successfully')
-                        ->body("Sent to {$this->record->recipients->count()} user(s)")
+                        ->body("Sent to {$count} user(s)")
                         ->success()
                         ->send();
 
-                    // Refresh the page to update UI
-                    $this->refreshFormData([
-                        'sent_at',
-                    ]);
+                    $this->refreshFormData(['sent_at']);
                 })
                 ->visible(fn (): bool => $this->record->isDraft()),
 
@@ -128,12 +118,18 @@ class ViewAdminNotification extends ViewRecord
 
                         Infolists\Components\TextEntry::make('sent_at')
                             ->label('Sent At')
-                            ->dateTime()
+                            ->formatStateUsing(fn ($state): string => $state
+                                ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format . ' H:i')
+                                : '—'
+                            )
                             ->placeholder('Not sent yet'),
 
                         Infolists\Components\TextEntry::make('created_at')
                             ->label('Created At')
-                            ->dateTime(),
+                            ->formatStateUsing(fn ($state): string => $state
+                                ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format . ' H:i')
+                                : '—'
+                            ),
                     ])
                     ->columns(3),
 
@@ -144,7 +140,10 @@ class ViewAdminNotification extends ViewRecord
 
                         Infolists\Components\TextEntry::make('updated_at')
                             ->label('Last Updated')
-                            ->dateTime(),
+                            ->formatStateUsing(fn ($state): string => $state
+                                ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format . ' H:i')
+                                : '—'
+                            ),
                     ])
                     ->columns(2)
                     ->collapsed(),

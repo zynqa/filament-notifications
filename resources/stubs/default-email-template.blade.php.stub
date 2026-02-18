@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $title }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: {{ $notification_type === 'success' ? '#10b981' : ($notification_type === 'warning' ? '#f59e0b' : ($notification_type === 'danger' ? '#ef4444' : '#3b82f6')) }};
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .message {
+            background-color: #f9fafb;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid {{ $notification_type === 'success' ? '#10b981' : ($notification_type === 'warning' ? '#f59e0b' : ($notification_type === 'danger' ? '#ef4444' : '#3b82f6')) }};
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: {{ $notification_type === 'success' ? '#10b981' : ($notification_type === 'warning' ? '#f59e0b' : ($notification_type === 'danger' ? '#ef4444' : '#3b82f6')) }};
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ $title }}</h1>
+        </div>
+
+        <div class="content">
+            <div class="message">
+                {!! nl2br(e($body)) !!}
+            </div>
+
+            @if($url)
+            <div style="text-align: center;">
+                <a href="{{ $url }}" class="button">
+                    View Details
+                </a>
+            </div>
+            @endif
+        </div>
+
+        <div class="footer">
+            <p>This is an automated notification from {{ config('app.name') }}.</p>
+            <p style="margin-top: 10px;">Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

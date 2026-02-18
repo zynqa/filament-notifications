@@ -66,6 +66,29 @@ class AdminNotificationResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
+                Forms\Components\Section::make('Delivery Options')
+                    ->description('Choose how this notification will be delivered to recipients.')
+                    ->schema([
+                        Forms\Components\Radio::make('delivery_method')
+                            ->label('How should this notification be delivered?')
+                            ->options([
+                                'database' => 'Database Notification Only',
+                                'email' => 'Email Only',
+                                'both' => 'Both Database and Email',
+                            ])
+                            ->descriptions([
+                                'database' => 'Recipients will see this notification in their Filament notification bell (current default behavior)',
+                                'email' => 'Recipients will receive an email notification using the template configured in settings',
+                                'both' => 'Recipients will receive both a database notification and an email notification',
+                            ])
+                            ->default('database')
+                            ->required()
+                            ->inline(false)
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->hidden(fn (?AdminNotification $record) => $record?->isSent() ?? false),
+
                 Forms\Components\Section::make('Notification Appearance')
                     ->schema([
                         Forms\Components\Select::make('notification_type')
@@ -73,7 +96,9 @@ class AdminNotificationResource extends Resource
                             ->options(AdminNotification::getNotificationTypeOptions())
                             ->default('info')
                             ->required()
-                            ->native(false),
+                            ->native(false)
+                            ->live()
+                            ->afterStateUpdated(fn (string $state, Forms\Set $set) => $set('icon_color', $state)),
 
                         Forms\Components\Select::make('icon')
                             ->options(Config::get('filament-notifications.default_icons', []))
@@ -85,7 +110,7 @@ class AdminNotificationResource extends Resource
                         Forms\Components\Select::make('icon_color')
                             ->label('Icon Color')
                             ->options(AdminNotification::getIconColorOptions())
-                            ->default('primary')
+                            ->default('info')
                             ->required()
                             ->native(false),
                     ])
@@ -148,6 +173,25 @@ class AdminNotificationResource extends Resource
                     ->badge()
                     ->color('warning'),
 
+                Tables\Columns\BadgeColumn::make('delivery_method')
+                    ->label('Delivery')
+                    ->colors([
+                        'gray' => 'database',
+                        'info' => 'email',
+                        'success' => 'both',
+                    ])
+                    ->icons([
+                        'heroicon-o-bell' => 'database',
+                        'heroicon-o-envelope' => 'email',
+                        'heroicon-o-bell-alert' => 'both',
+                    ])
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'database' => 'Database',
+                        'email' => 'Email',
+                        'both' => 'Both',
+                        default => ucfirst($state),
+                    }),
+
                 Tables\Columns\IconColumn::make('sent_at')
                     ->label('Status')
                     ->boolean()
@@ -164,7 +208,10 @@ class AdminNotificationResource extends Resource
 
                 Tables\Columns\TextColumn::make('sent_at')
                     ->label('Sent At')
-                    ->dateTime()
+                    ->formatStateUsing(fn ($state): string => $state
+                        ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format . ' H:i')
+                        : '—'
+                    )
                     ->sortable()
                     ->placeholder('Not sent yet'),
 
@@ -201,18 +248,12 @@ class AdminNotificationResource extends Resource
                     ->modalDescription(fn (AdminNotification $record) => "Send this notification to {$record->recipients->count()} user(s)?")
                     ->modalSubmitActionLabel('Send Notification')
                     ->action(function (AdminNotification $record) {
-                        // Mark as sent
-                        $record->update(['sent_at' => now()]);
+                        $count = $record->recipients->count();
+                        $record->sendToRecipients();
 
-                        // Send to each recipient
-                        foreach ($record->recipients as $user) {
-                            $user->notify(new AdminBroadcastNotification($record));
-                        }
-
-                        // Success notification
                         Notification::make()
                             ->title('Notification Sent Successfully')
-                            ->body("Sent to {$record->recipients->count()} user(s)")
+                            ->body("Sent to {$count} user(s)")
                             ->success()
                             ->send();
                     })
