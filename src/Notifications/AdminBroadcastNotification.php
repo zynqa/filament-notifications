@@ -75,8 +75,7 @@ class AdminBroadcastNotification extends Notification
         // Always add Mark as Read action
         $actions[] = Action::make('mark_as_read')
             ->label('Mark as Read')
-            ->markAsRead()
-            ->close();
+            ->markAsRead();
 
         // Configure the notification
         $filamentNotification

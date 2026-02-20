@@ -13,6 +13,21 @@ class AdminNotificationPolicy
     use HandlesAuthorization;
 
     /**
+     * Allow super_admin to bypass all checks (mirrors Shield-generated policy behaviour
+     * when filament-shield.super_admin.define_via_gate is false).
+     */
+    public function before($user, string $ability): ?bool
+    {
+        $superAdminRole = Config::get('filament-shield.super_admin.name', 'super_admin');
+
+        if (method_exists($user, 'hasRole') && $user->hasRole($superAdminRole)) {
+            return true;
+        }
+
+        return null;
+    }
+
+    /**
      * Determine whether the user can view any models.
      */
     public function viewAny($user): bool

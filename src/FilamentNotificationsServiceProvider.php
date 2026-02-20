@@ -30,5 +30,9 @@ class FilamentNotificationsServiceProvider extends PackageServiceProvider
             'notification-read-sync',
             \Zynqa\FilamentNotifications\Livewire\NotificationReadSync::class
         );
+
+        // Register the settings migration so it is discovered by `php artisan migrate`
+        // without requiring a manual copy to the host app's database/settings directory.
+        $this->loadMigrationsFrom(__DIR__.'/../database/settings');
     }
 }
