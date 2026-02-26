@@ -140,7 +140,7 @@ class AdminNotificationResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->limit(50),
+                    ->limit(20),
 
                 Tables\Columns\BadgeColumn::make('notification_type')
                     ->label('Type')
@@ -203,6 +203,9 @@ class AdminNotificationResource extends Resource
 
                 Tables\Columns\TextColumn::make('creator.name')
                     ->label('Created By')
+                    ->formatStateUsing(fn ($state, AdminNotification $record): string => $record->source === 'system' ? 'System' : ($state ?? '—'))
+                    ->badge()
+                    ->color(fn (AdminNotification $record): string => $record->source === 'system' ? 'gray' : 'primary')
                     ->sortable()
                     ->searchable(),
 

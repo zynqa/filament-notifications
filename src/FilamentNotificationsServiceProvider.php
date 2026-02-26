@@ -6,6 +6,7 @@ namespace Zynqa\FilamentNotifications;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Zynqa\FilamentNotifications\Services\SubscriptionNotificationService;
 
 class FilamentNotificationsServiceProvider extends PackageServiceProvider
 {
@@ -18,6 +19,8 @@ class FilamentNotificationsServiceProvider extends PackageServiceProvider
                 'create_admin_notifications_table',
                 'create_notification_recipients_table',
                 'add_email_delivery_to_admin_notifications_table',
+                'create_entity_subscriptions_table',
+                'create_entity_type_settings_table',
             ])
             ->hasViews();
     }
@@ -31,12 +34,19 @@ class FilamentNotificationsServiceProvider extends PackageServiceProvider
             \Zynqa\FilamentNotifications\Livewire\NotificationReadSync::class
         );
 
-        // Register the settings migration so it is discovered by `php artisan migrate`
-        // without requiring a manual copy to the host app's database/settings directory.
+        // Register migrations so they are discovered by `php artisan migrate`
+        // without requiring a manual copy to the host app's database/migrations directory.
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadMigrationsFrom(__DIR__.'/../database/settings');
 
         // Ensure settings exist in database (in case migration didn't run properly)
         $this->ensureSettingsExist();
+    }
+
+    public function packageRegistered(): void
+    {
+        // Register SubscriptionNotificationService as a singleton
+        $this->app->singleton(SubscriptionNotificationService::class);
     }
 
     /**

@@ -25,6 +25,7 @@ class AdminNotification extends Model
         'url',
         'delivery_method',
         'created_by',
+        'source',
         'sent_at',
     ];
 
@@ -169,6 +170,44 @@ class AdminNotification extends Model
             'info' => 'Info',
             'gray' => 'Gray',
         ];
+    }
+
+    /**
+     * Create an already-sent system notification record for admin audit trail.
+     *
+     * @param  array<int>|int  $recipientIds
+     */
+    public static function createFromSystem(
+        string $title,
+        string $body,
+        string $notificationType,
+        string $icon,
+        string $iconColor,
+        ?string $url,
+        array|int $recipientIds,
+        string $deliveryMethod = 'both',
+    ): static {
+        $record = static::create([
+            'title' => $title,
+            'body' => $body,
+            'icon' => $icon,
+            'icon_color' => $iconColor,
+            'notification_type' => $notificationType,
+            'url' => $url,
+            'delivery_method' => $deliveryMethod,
+            'created_by' => null,
+            'source' => 'system',
+            'sent_at' => now(),
+        ]);
+
+        $ids = is_array($recipientIds) ? $recipientIds : [$recipientIds];
+        $pivotData = array_fill_keys(
+            $ids,
+            ['read_at' => null, 'created_at' => now(), 'updated_at' => now()],
+        );
+        $record->recipients()->attach($pivotData);
+
+        return $record;
     }
 
     /**
