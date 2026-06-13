@@ -7,12 +7,46 @@ namespace Zynqa\FilamentNotifications\Models\Concerns;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Zynqa\FilamentNotifications\Contracts\Subscribable;
 use Zynqa\FilamentNotifications\Models\EntitySubscription;
+use Zynqa\FilamentNotifications\Models\NotificationPreference;
+use Zynqa\FilamentNotifications\Support\NotificationChannelResolver;
 
 trait HasSubscriptions
 {
     public function entitySubscriptions(): HasMany
     {
         return $this->hasMany(EntitySubscription::class);
+    }
+
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(NotificationPreference::class);
+    }
+
+    /**
+     * Resolve the effective notification channel for a given notification type,
+     * falling back to the historical default (`database`) when unset.
+     */
+    public function notificationChannelFor(string $type): string
+    {
+        $stored = $this->notificationPreferences()
+            ->where('notification_type', $type)
+            ->value('channel');
+
+        return NotificationChannelResolver::resolve($stored);
+    }
+
+    /**
+     * Persist the user's channel preference for a notification type.
+     * Invalid values fall back to the default channel.
+     */
+    public function setNotificationChannelFor(string $type, string $channel): NotificationPreference
+    {
+        $channel = NotificationChannelResolver::resolve($channel);
+
+        return $this->notificationPreferences()->updateOrCreate(
+            ['notification_type' => $type],
+            ['channel' => $channel],
+        );
     }
 
     public function isSubscribedTo(Subscribable $entity): bool

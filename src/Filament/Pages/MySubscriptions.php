@@ -7,7 +7,6 @@ namespace Zynqa\FilamentNotifications\Filament\Pages;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Tables\Actions\Action as TableAction;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -15,6 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Zynqa\FilamentNotifications\FilamentNotificationsPlugin;
 use Zynqa\FilamentNotifications\Models\EntitySubscription;
+use Zynqa\FilamentNotifications\Support\NotificationChannelResolver;
 
 class MySubscriptions extends Page implements HasTable
 {
@@ -71,14 +71,18 @@ class MySubscriptions extends Page implements HasTable
 
                         return "{$record->subscribable_type} #{$record->subscribable_id}";
                     }),
-                BadgeColumn::make('channel')
-                    ->label('Channel')
-                    ->colors([
-                        'info' => 'database',
-                        'warning' => 'email',
-                        'success' => 'both',
-                    ])
-                    ->sortable(),
+                TextColumn::make('effective_channel')
+                    ->label('Notify via')
+                    ->badge()
+                    ->getStateUsing(function (EntitySubscription $record): string {
+                        $user = Auth::user();
+                        $channel = ($user && method_exists($user, 'notificationChannelFor'))
+                            ? $user->notificationChannelFor($record->subscribable_type)
+                            : NotificationChannelResolver::resolve($record->channel);
+
+                        return NotificationChannelResolver::options()[$channel] ?? $channel;
+                    })
+                    ->tooltip('Manage notification channels in your profile.'),
                 TextColumn::make('subscribed_at')
                     ->label('Subscribed')
                     ->dateTime()
