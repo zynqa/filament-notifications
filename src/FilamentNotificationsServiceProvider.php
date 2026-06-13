@@ -21,6 +21,7 @@ class FilamentNotificationsServiceProvider extends PackageServiceProvider
                 'add_email_delivery_to_admin_notifications_table',
                 'create_entity_subscriptions_table',
                 'create_entity_type_settings_table',
+                'create_notification_preferences_table',
             ])
             ->hasViews();
     }

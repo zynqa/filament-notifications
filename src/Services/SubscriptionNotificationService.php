@@ -20,10 +20,24 @@ class SubscriptionNotificationService
             ->with('user')
             ->get();
 
+        $type = $entity::getSubscribableType();
+
         foreach ($subscriptions as $subscription) {
             $user = $subscription->user;
 
             if (! $user) {
+                continue;
+            }
+
+            // The user's per-type preference is authoritative over the per-subscription
+            // channel. Fall back to the subscription channel if the host user model does
+            // not expose preferences (keeps the package usable without the trait).
+            $channel = method_exists($user, 'notificationChannelFor')
+                ? $user->notificationChannelFor($type)
+                : $subscription->channel;
+
+            // 'off' mutes this notification type entirely for the user.
+            if ($channel === 'off') {
                 continue;
             }
 
@@ -32,7 +46,7 @@ class SubscriptionNotificationService
                     entity: $entity,
                     event: $event,
                     context: $context,
-                    channel: $subscription->channel,
+                    channel: $channel,
                 ));
 
                 AdminNotification::createFromSystem(
@@ -43,7 +57,7 @@ class SubscriptionNotificationService
                     iconColor: 'info',
                     url: $entity->getSubscribableUrl(),
                     recipientIds: $user->id,
-                    deliveryMethod: $subscription->channel,
+                    deliveryMethod: $channel,
                 );
             } catch (\Throwable $e) {
                 Log::error('Failed to notify subscriber', [
