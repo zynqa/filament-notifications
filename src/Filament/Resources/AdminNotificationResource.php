@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Config;
 use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource\Pages;
 use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource\RelationManagers;
 use Zynqa\FilamentNotifications\Models\AdminNotification;
-use Zynqa\FilamentNotifications\Notifications\AdminBroadcastNotification;
 
 class AdminNotificationResource extends Resource
 {
@@ -212,7 +211,7 @@ class AdminNotificationResource extends Resource
                 Tables\Columns\TextColumn::make('sent_at')
                     ->label('Sent At')
                     ->formatStateUsing(fn ($state): string => $state
-                        ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format . ' H:i')
+                        ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format.' H:i')
                         : '—'
                     )
                     ->sortable()
