@@ -13,12 +13,14 @@ namespace Zynqa\FilamentNotifications\Support;
  *  - email    => email only
  *  - both     => in-app bell and email
  *
- * When no preference (or an invalid value) is stored, we fall back to `database`,
- * which preserves the historical default behaviour (in-app only, no surprise emails).
+ * When no preference (or an invalid value) is stored, we fall back to `both`: subscribing
+ * to an entity is an explicit request to be told about it, and a user who never opens the
+ * preferences page should still get email rather than only an in-app bell they may never
+ * see. Users who want in-app only can say so — that writes an explicit `database` row.
  */
 class NotificationChannelResolver
 {
-    public const DEFAULT = 'database';
+    public const DEFAULT = 'both';
 
     /**
      * @var array<int, string>
