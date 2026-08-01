@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications\Filament\Pages;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -147,7 +148,7 @@ class ManageEntityTypeSettings extends Page implements HasForms
     protected function getFormActions(): array
     {
         return [
-            \Filament\Actions\Action::make('save')
+            Action::make('save')
                 ->label('Save')
                 ->submit('save'),
         ];

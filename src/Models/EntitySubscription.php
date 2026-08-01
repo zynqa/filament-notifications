@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,7 +26,7 @@ class EntitySubscription extends Model
 
     public function user(): BelongsTo
     {
-        $userModel = config('auth.providers.users.model', \App\Models\User::class);
+        $userModel = config('auth.providers.users.model', User::class);
 
         return $this->belongsTo($userModel);
     }

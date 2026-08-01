@@ -1,0 +1,91 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Access to an undefined property Zynqa\\\\FilamentNotifications\\\\Filament\\\\Pages\\\\ManageEntityTypeSettings\\:\\:\\$form\\.$#"
+			count: 2
+			path: src/Filament/Pages/ManageEntityTypeSettings.php
+
+		-
+			message: "#^Call to an undefined static method Zynqa\\\\FilamentNotifications\\\\Models\\\\EntityTypeSetting\\:\\:updateOrCreate\\(\\)\\.$#"
+			count: 2
+			path: src/Filament/Pages/ManageEntityTypeSettings.php
+
+		-
+			message: "#^Class App\\\\Models\\\\User not found\\.$#"
+			count: 1
+			path: src/Filament/Resources/AdminNotificationResource.php
+
+		-
+			message: "#^Class App\\\\Settings\\\\GeneralSettings not found\\.$#"
+			count: 1
+			path: src/Filament/Resources/AdminNotificationResource.php
+
+		-
+			message: "#^Class App\\\\Settings\\\\GeneralSettings not found\\.$#"
+			count: 3
+			path: src/Filament/Resources/AdminNotificationResource/Pages/ViewAdminNotification.php
+
+		-
+			message: "#^Call to an undefined static method Zynqa\\\\FilamentNotifications\\\\Models\\\\EntityTypeSetting\\:\\:firstOrCreate\\(\\)\\.$#"
+			count: 2
+			path: src/FilamentNotificationsPlugin.php
+
+		-
+			message: "#^Call to an undefined static method Illuminate\\\\Notifications\\\\DatabaseNotification\\:\\:find\\(\\)\\.$#"
+			count: 1
+			path: src/Livewire/NotificationReadSync.php
+
+		-
+			message: "#^Access to an undefined property Zynqa\\\\FilamentNotifications\\\\Models\\\\AdminNotification\\:\\:\\$delivery_method\\.$#"
+			count: 1
+			path: src/Models/AdminNotification.php
+
+		-
+			message: "#^Access to an undefined property Zynqa\\\\FilamentNotifications\\\\Models\\\\AdminNotification\\:\\:\\$id\\.$#"
+			count: 1
+			path: src/Models/AdminNotification.php
+
+		-
+			message: "#^Access to an undefined property Zynqa\\\\FilamentNotifications\\\\Models\\\\AdminNotification\\:\\:\\$recipients\\.$#"
+			count: 1
+			path: src/Models/AdminNotification.php
+
+		-
+			message: "#^Access to an undefined property Zynqa\\\\FilamentNotifications\\\\Models\\\\AdminNotification\\:\\:\\$sent_at\\.$#"
+			count: 2
+			path: src/Models/AdminNotification.php
+
+		-
+			message: "#^Call to an undefined static method Zynqa\\\\FilamentNotifications\\\\Models\\\\AdminNotification\\:\\:create\\(\\)\\.$#"
+			count: 1
+			path: src/Models/AdminNotification.php
+
+		-
+			message: "#^Class App\\\\Models\\\\User not found\\.$#"
+			count: 2
+			path: src/Models/AdminNotification.php
+
+		-
+			message: "#^Call to an undefined static method Zynqa\\\\FilamentNotifications\\\\Models\\\\EntitySubscription\\:\\:where\\(\\)\\.$#"
+			count: 1
+			path: src/Models/EntitySubscription.php
+
+		-
+			message: "#^Class App\\\\Models\\\\User not found\\.$#"
+			count: 1
+			path: src/Models/EntitySubscription.php
+
+		-
+			message: "#^Call to an undefined static method Zynqa\\\\FilamentNotifications\\\\Models\\\\EntityTypeSetting\\:\\:firstOrCreate\\(\\)\\.$#"
+			count: 1
+			path: src/Models/EntityTypeSetting.php
+
+		-
+			message: "#^Call to an undefined static method Zynqa\\\\FilamentNotifications\\\\Models\\\\EntityTypeSetting\\:\\:where\\(\\)\\.$#"
+			count: 1
+			path: src/Models/EntityTypeSetting.php
+
+		-
+			message: "#^Class App\\\\Models\\\\User not found\\.$#"
+			count: 1
+			path: src/Models/NotificationPreference.php
