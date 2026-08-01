@@ -57,7 +57,7 @@ trait HasSubscriptions
             ->exists();
     }
 
-    public function subscribeTo(Subscribable $entity, string $channel = 'database'): EntitySubscription
+    public function subscribeTo(Subscribable $entity, string $channel = NotificationChannelResolver::DEFAULT): EntitySubscription
     {
         return $this->entitySubscriptions()->firstOrCreate(
             [
