@@ -119,7 +119,7 @@ class ViewAdminNotification extends ViewRecord
                         Infolists\Components\TextEntry::make('sent_at')
                             ->label('Sent At')
                             ->formatStateUsing(fn ($state): string => $state
-                                ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format . ' H:i')
+                                ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format.' H:i')
                                 : '—'
                             )
                             ->placeholder('Not sent yet'),
@@ -127,7 +127,7 @@ class ViewAdminNotification extends ViewRecord
                         Infolists\Components\TextEntry::make('created_at')
                             ->label('Created At')
                             ->formatStateUsing(fn ($state): string => $state
-                                ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format . ' H:i')
+                                ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format.' H:i')
                                 : '—'
                             ),
                     ])
@@ -141,7 +141,7 @@ class ViewAdminNotification extends ViewRecord
                         Infolists\Components\TextEntry::make('updated_at')
                             ->label('Last Updated')
                             ->formatStateUsing(fn ($state): string => $state
-                                ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format . ' H:i')
+                                ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format.' H:i')
                                 : '—'
                             ),
                     ])
