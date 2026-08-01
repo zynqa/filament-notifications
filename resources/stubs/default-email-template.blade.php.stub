@@ -1,91 +1,162 @@
+{{--
+    Zynqa Client Portal — transactional notification shell (ZCP-107).
+
+    One shell, four messages: header, title block, CTA and footer are identical in every
+    email. Only the event label and the bordered strip below the title change per
+    notification type, driven by $event and $context.
+
+    Rendered through MailTemplateService via Blade::render(), so every variable it uses must
+    be passed by resources/views/emails/notification.blade.php. Optional ones are guarded.
+
+    Email-client constraints: table-based layout (Outlook's Word engine has no flexbox),
+    inline styles (Gmail strips most of <head>), and a PNG mark (SVG is blocked in Gmail).
+--}}
+@php
+    $context = $context ?? [];
+    $event = $event ?? null;
+    $heading = $entity_label ?? $title;
+
+    $fontStack = "Figtree, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+    // Known context shapes get a purpose-built strip; anything else falls back to rows.
+    $from = $context['From'] ?? null;
+    $to = $context['To'] ?? null;
+    $author = $context['By'] ?? null;
+    $comment = $context['Comment'] ?? null;
+    $status = $context['Status'] ?? null;
+    $remaining = collect($context)->except(['From', 'To', 'By', 'Comment', 'Status']);
+
+    $isTransition = $from !== null && $to !== null;
+    $isComment = $author !== null;
+    $hasStrip = $isTransition || $isComment || $status !== null || $remaining->isNotEmpty() || (! $event && filled($body));
+
+    $preheader = $event ? $event.' — '.$heading : $heading;
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
     <title>{{ $title }}</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .header {
-            background-color: {{ $notification_type === 'success' ? '#10b981' : ($notification_type === 'warning' ? '#f59e0b' : ($notification_type === 'danger' ? '#ef4444' : '#3b82f6')) }};
-            color: white;
-            padding: 30px 20px;
-            text-align: center;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-        }
-        .content {
-            padding: 30px 20px;
-        }
-        .message {
-            background-color: #f9fafb;
-            padding: 20px;
-            border-radius: 6px;
-            margin: 20px 0;
-            border-left: 4px solid {{ $notification_type === 'success' ? '#10b981' : ($notification_type === 'warning' ? '#f59e0b' : ($notification_type === 'danger' ? '#ef4444' : '#3b82f6')) }};
-        }
-        .button {
-            display: inline-block;
-            padding: 12px 30px;
-            background-color: {{ $notification_type === 'success' ? '#10b981' : ($notification_type === 'warning' ? '#f59e0b' : ($notification_type === 'danger' ? '#ef4444' : '#3b82f6')) }};
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 600;
-            margin: 20px 0;
-        }
-        .footer {
-            background-color: #f9fafb;
-            padding: 20px;
-            text-align: center;
-            color: #6b7280;
-            font-size: 14px;
-            border-top: 1px solid #e5e7eb;
+        @import url('https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap');
+
+        body { margin: 0; padding: 0; width: 100% !important; }
+        img { border: 0; line-height: 100%; outline: none; text-decoration: none; }
+        table { border-collapse: collapse; }
+        a { color: #1d4ed8; }
+        .zq-card a.zq-cta:hover { background: #3b82f6 !important; }
+
+        @media only screen and (max-width: 620px) {
+            .zq-pad { padding-left: 20px !important; padding-right: 20px !important; }
+            .zq-title { font-size: 22px !important; }
+            .zq-body-pad { padding-top: 28px !important; }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>{{ $title }}</h1>
-        </div>
+<body style="margin: 0; padding: 0; background-color: #f3f4f6;">
+    <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; color: transparent; height: 0; width: 0;">{{ $preheader }}</div>
 
-        <div class="content">
-            <div class="message">
-                {!! nl2br(e($body)) !!}
-            </div>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f3f4f6;">
+        <tr>
+            <td align="center" style="padding: 32px 12px 48px;">
 
-            @if($url)
-            <div style="text-align: center;">
-                <a href="{{ $url }}" class="button">
-                    View Details
-                </a>
-            </div>
-            @endif
-        </div>
+                <table role="presentation" class="zq-card" cellpadding="0" cellspacing="0" border="0" width="600" style="width: 600px; max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 14px 34px rgba(0,0,0,.08);">
 
-        <div class="footer">
-            <p>This is an automated notification from {{ config('app.name') }}.</p>
-            <p style="margin-top: 10px;">Please do not reply to this email.</p>
-        </div>
-    </div>
+                    {{-- Header --}}
+                    <tr>
+                        <td class="zq-pad" style="background-color: #111827; padding: 22px 32px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                <tr>
+                                    <td align="left" valign="middle" style="font-family: {{ $fontStack }};">
+                                        <img src="{{ url('images/zynqa-mark-white.png') }}" width="23" height="22" alt="Zynqa" style="height: 22px; width: 23px; display: inline-block; vertical-align: middle;">
+                                        <span style="display: inline-block; vertical-align: middle; padding-left: 10px; font-family: {{ $fontStack }}; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; color: #ffffff;">Zynqa</span>
+                                    </td>
+                                    <td align="right" valign="middle" style="font-family: {{ $fontStack }}; font-size: 13px; font-weight: 500; color: #9ca3af; white-space: nowrap;">
+                                        Client Portal
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    {{-- Title, event label, strip, CTA --}}
+                    <tr>
+                        <td class="zq-pad zq-body-pad" style="padding: 40px 32px 32px;">
+
+                            <h1 class="zq-title" style="margin: 0; font-family: {{ $fontStack }}; font-size: 26px; line-height: 1.25; font-weight: 600; letter-spacing: -0.025em; color: #111827;">{{ $heading }}</h1>
+
+                            @if ($event)
+                                <div style="padding-top: 14px; font-family: {{ $fontStack }}; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #1d4ed8;">{{ $event }}</div>
+                            @endif
+
+                            @if ($hasStrip)
+                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 20px;">
+                                    <tr>
+                                        <td style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px 20px;">
+
+                                            @if ($isTransition)
+                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                    <tr>
+                                                        <td bgcolor="#f3f4f6" style="border-radius: 9999px; padding: 4px 10px; font-family: {{ $fontStack }}; font-size: 13px; font-weight: 500; color: #4b5563;">{{ $from }}</td>
+                                                        <td style="padding: 0 10px; font-family: {{ $fontStack }}; font-size: 15px; color: #9ca3af;">&rarr;</td>
+                                                        <td bgcolor="#1d4ed8" style="border-radius: 9999px; padding: 4px 10px; font-family: {{ $fontStack }}; font-size: 13px; font-weight: 600; color: #ffffff;">{{ $to }}</td>
+                                                    </tr>
+                                                </table>
+                                            @elseif ($isComment)
+                                                <div style="font-family: {{ $fontStack }}; font-size: 14px; font-weight: 600; color: #111827;">{{ $author }}</div>
+                                                @if (filled($comment))
+                                                    <p style="margin: 8px 0 0; font-family: {{ $fontStack }}; font-size: 15px; line-height: 1.7; color: #4b5563;">{{ $comment }}</p>
+                                                @endif
+                                            @elseif ($status !== null)
+                                                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                    <tr>
+                                                        <td bgcolor="#1d4ed8" style="border-radius: 9999px; padding: 4px 10px; font-family: {{ $fontStack }}; font-size: 13px; font-weight: 600; color: #ffffff;">{{ $status }}</td>
+                                                        @foreach ($remaining as $label => $value)
+                                                            <td style="padding-left: 12px; font-family: {{ $fontStack }}; font-size: 14px; color: #4b5563;">{{ $label }} {{ $value }}</td>
+                                                        @endforeach
+                                                    </tr>
+                                                </table>
+                                            @elseif ($remaining->isNotEmpty())
+                                                @foreach ($remaining as $label => $value)
+                                                    <div style="font-family: {{ $fontStack }}; font-size: 15px; line-height: 1.7; color: #4b5563;{{ $loop->first ? '' : ' padding-top: 4px;' }}"><span style="font-weight: 600; color: #111827;">{{ $label }}:</span> {{ $value }}</div>
+                                                @endforeach
+                                            @else
+                                                <p style="margin: 0; font-family: {{ $fontStack }}; font-size: 15px; line-height: 1.7; color: #4b5563;">{!! nl2br(e($body)) !!}</p>
+                                            @endif
+
+                                        </td>
+                                    </tr>
+                                </table>
+                            @endif
+
+                            @if ($url)
+                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top: 20px;">
+                                    <tr>
+                                        <td bgcolor="#1d4ed8" style="border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,.05);">
+                                            <a class="zq-cta" href="{{ $url }}" style="display: inline-block; padding: 11px 20px; font-family: {{ $fontStack }}; font-size: 15px; font-weight: 600; line-height: 1.2; color: #ffffff; text-decoration: none; border-radius: 6px;">View Details</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            @endif
+
+                        </td>
+                    </tr>
+
+                    {{-- Footer --}}
+                    <tr>
+                        <td class="zq-pad" align="center" style="border-top: 1px solid #e5e7eb; padding: 24px 32px 28px; text-align: center;">
+                            <p style="margin: 0; font-family: {{ $fontStack }}; font-size: 13px; line-height: 1.7; color: #6b7280;">This is an automated notification from Client Portal.</p>
+                            <p style="margin: 6px 0 0; font-family: {{ $fontStack }}; font-size: 13px; line-height: 1.7; color: #6b7280;">Please do not reply to this email.</p>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

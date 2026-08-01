@@ -85,6 +85,12 @@ class EntitySubscriptionNotification extends Notification
                 'icon' => 'heroicon-o-bell',
                 'icon_color' => 'info',
                 'templateName' => $templateName,
+                // Structured equivalents of $title/$body so a template can lay the event and
+                // its details out on their own terms (pills, author block) instead of
+                // re-parsing the flattened "From: x | To: y" string.
+                'entity_label' => $this->entity->getSubscribableLabel(),
+                'event' => $this->event,
+                'context' => $this->context,
             ]);
     }
 
