@@ -14,11 +14,9 @@ use Zynqa\FilamentNotifications\Settings\NotificationSettings;
 
 class AdminBroadcastNotification extends Notification
 {
-
     public function __construct(
         public AdminNotification $adminNotification
-    ) {
-    }
+    ) {}
 
     /**
      * Get the notification's delivery channels.

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Zynqa\FilamentNotifications\Notifications\AdminBroadcastNotification;
 
 class AdminNotification extends Model
 {
@@ -38,7 +41,7 @@ class AdminNotification extends Model
      */
     public function creator(): BelongsTo
     {
-        $userModel = Config::get('auth.providers.users.model', \App\Models\User::class);
+        $userModel = Config::get('auth.providers.users.model', User::class);
 
         return $this->belongsTo($userModel, 'created_by');
     }
@@ -48,7 +51,7 @@ class AdminNotification extends Model
      */
     public function recipients(): BelongsToMany
     {
-        $userModel = Config::get('auth.providers.users.model', \App\Models\User::class);
+        $userModel = Config::get('auth.providers.users.model', User::class);
 
         return $this->belongsToMany($userModel, 'notification_recipients', 'admin_notification_id', 'user_id')
             ->withPivot('read_at')
@@ -121,12 +124,12 @@ class AdminNotification extends Model
         $this->update(['sent_at' => now()]);
 
         foreach ($this->recipients as $user) {
-            $user->notify(new \Zynqa\FilamentNotifications\Notifications\AdminBroadcastNotification($this));
+            $user->notify(new AdminBroadcastNotification($this));
         }
 
         // Email has no read-tracking mechanism; mark pivot as read immediately on send
         if ($this->delivery_method === 'email') {
-            \Illuminate\Support\Facades\DB::table('notification_recipients')
+            DB::table('notification_recipients')
                 ->where('admin_notification_id', $this->id)
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);

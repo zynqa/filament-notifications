@@ -18,14 +18,14 @@ class MailTemplateService
      */
     public static function getAvailableTemplates(): array
     {
-        $path = storage_path('app/' . self::$templatesPath);
+        $path = storage_path('app/'.self::$templatesPath);
 
         if (! File::isDirectory($path)) {
             File::makeDirectory($path, 0755, true);
             self::createDefaultTemplate();
         }
 
-        $files = File::glob($path . '/*.blade.php');
+        $files = File::glob($path.'/*.blade.php');
         $templates = [];
 
         foreach ($files as $file) {
@@ -48,7 +48,7 @@ class MailTemplateService
      */
     public static function templateExists(string $template): bool
     {
-        $path = storage_path('app/' . self::$templatesPath . '/' . $template);
+        $path = storage_path('app/'.self::$templatesPath.'/'.$template);
 
         return File::exists($path);
     }
@@ -58,7 +58,7 @@ class MailTemplateService
      */
     public static function getTemplatePath(string $template): string
     {
-        return storage_path('app/' . self::$templatesPath . '/' . $template);
+        return storage_path('app/'.self::$templatesPath.'/'.$template);
     }
 
     /**
@@ -67,22 +67,22 @@ class MailTemplateService
     public static function createDefaultTemplate(): void
     {
         // Ensure the templates directory exists
-        $path = storage_path('app/' . self::$templatesPath);
+        $path = storage_path('app/'.self::$templatesPath);
         if (! File::isDirectory($path)) {
             File::makeDirectory($path, 0755, true);
         }
 
-        $defaultPath = storage_path('app/' . self::$templatesPath . '/default.blade.php');
+        $defaultPath = storage_path('app/'.self::$templatesPath.'/default.blade.php');
 
         if (! File::exists($defaultPath)) {
-            $stub = File::get(__DIR__ . '/../../resources/stubs/default-email-template.blade.php.stub');
+            $stub = File::get(__DIR__.'/../../resources/stubs/default-email-template.blade.php.stub');
             File::put($defaultPath, $stub);
         }
 
         // Also create README
-        $readmePath = storage_path('app/' . self::$templatesPath . '/README.md');
+        $readmePath = storage_path('app/'.self::$templatesPath.'/README.md');
         if (! File::exists($readmePath)) {
-            $readmeStub = File::get(__DIR__ . '/../../resources/stubs/template-readme.md.stub');
+            $readmeStub = File::get(__DIR__.'/../../resources/stubs/template-readme.md.stub');
             File::put($readmePath, $readmeStub);
         }
     }

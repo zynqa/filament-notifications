@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications;
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Livewire\Livewire;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Zynqa\FilamentNotifications\Livewire\NotificationReadSync;
+use Zynqa\FilamentNotifications\Services\MailTemplateService;
 use Zynqa\FilamentNotifications\Services\SubscriptionNotificationService;
 
 class FilamentNotificationsServiceProvider extends PackageServiceProvider
@@ -28,11 +33,11 @@ class FilamentNotificationsServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        \Zynqa\FilamentNotifications\Services\MailTemplateService::createDefaultTemplate();
+        MailTemplateService::createDefaultTemplate();
 
-        \Livewire\Livewire::component(
+        Livewire::component(
             'notification-read-sync',
-            \Zynqa\FilamentNotifications\Livewire\NotificationReadSync::class
+            NotificationReadSync::class
         );
 
         // Register migrations so they are discovered by `php artisan migrate`
@@ -58,14 +63,14 @@ class FilamentNotificationsServiceProvider extends PackageServiceProvider
         try {
             // Only run if settings table exists and we're not in console (to avoid issues during migrations)
             if (! app()->runningInConsole() || app()->runningUnitTests()) {
-                if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
-                    $exists = \Illuminate\Support\Facades\DB::table('settings')
+                if (Schema::hasTable('settings')) {
+                    $exists = DB::table('settings')
                         ->where('group', 'filament-notifications')
                         ->where('name', 'default_email_template')
                         ->exists();
 
                     if (! $exists) {
-                        \Illuminate\Support\Facades\DB::table('settings')->insert([
+                        DB::table('settings')->insert([
                             'group' => 'filament-notifications',
                             'name' => 'default_email_template',
                             'locked' => 0,
