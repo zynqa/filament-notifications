@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications\Models\Concerns;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Zynqa\FilamentNotifications\Models\EntitySubscription;
@@ -17,7 +18,7 @@ trait HasSubscribers
 
     public function subscribers(): MorphToMany
     {
-        $userModel = config('auth.providers.users.model', \App\Models\User::class);
+        $userModel = config('auth.providers.users.model', User::class);
 
         return $this->morphToMany($userModel, 'subscribable', 'entity_subscriptions')
             ->withPivot('channel', 'subscribed_at')

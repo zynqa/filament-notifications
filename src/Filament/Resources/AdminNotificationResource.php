@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications\Filament\Resources;
 
+use App\Models\User;
+use App\Settings\GeneralSettings;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -41,7 +44,7 @@ class AdminNotificationResource extends Resource
 
     public static function form(Form $form): Form
     {
-        $userModel = Config::get('auth.providers.users.model', \App\Models\User::class);
+        $userModel = Config::get('auth.providers.users.model', User::class);
 
         return $form
             ->schema([
@@ -211,7 +214,7 @@ class AdminNotificationResource extends Resource
                 Tables\Columns\TextColumn::make('sent_at')
                     ->label('Sent At')
                     ->formatStateUsing(fn ($state): string => $state
-                        ? \Carbon\Carbon::parse($state)->format(app(\App\Settings\GeneralSettings::class)->date_format.' H:i')
+                        ? Carbon::parse($state)->format(app(GeneralSettings::class)->date_format.' H:i')
                         : '—'
                     )
                     ->sortable()

@@ -11,6 +11,7 @@ use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\HtmlString;
 use Zynqa\FilamentNotifications\Filament\Pages\ManageEntityTypeSettings;
 use Zynqa\FilamentNotifications\Filament\Pages\MySubscriptions;
@@ -146,7 +147,7 @@ class FilamentNotificationsPlugin implements Plugin
     protected function seedEntityTypeSettings(): void
     {
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('entity_type_settings')) {
+            if (Schema::hasTable('entity_type_settings')) {
                 foreach ($this->subscribableEntities as $alias => $config) {
                     EntityTypeSetting::firstOrCreate(
                         ['entity_type' => $alias],
