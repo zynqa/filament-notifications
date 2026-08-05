@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications\Notifications;
 
-use Filament\Notifications\Actions\Action;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Zynqa\FilamentNotifications\Filament\Concerns;
 
 use Filament\Facades\Filament;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Section;
+use Throwable;
 use Zynqa\FilamentNotifications\Support\NotificationChannelResolver;
 
 /**
@@ -34,10 +36,10 @@ trait ManagesNotificationPreferences
     protected function getSubscribableNotificationTypes(): array
     {
         try {
-            return Filament::getCurrentPanel()
+            return Filament::getCurrentOrDefaultPanel()
                 ->getPlugin('filament-notifications')
                 ->getRegisteredEntityTypes();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return [];
         }
     }
@@ -47,7 +49,7 @@ trait ManagesNotificationPreferences
      * types are registered. Use this when placing the preferences inside your own layout
      * (e.g. a Tab); use getNotificationPreferenceFormComponents() for a ready-made Section.
      *
-     * @return array<int, \Filament\Forms\Components\Component>
+     * @return array<int, Component>
      */
     protected function getNotificationPreferenceFields(): array
     {
@@ -70,7 +72,7 @@ trait ManagesNotificationPreferences
      * Form components for the notification preferences section. Empty when no
      * subscribable types are registered (so it cleanly disappears).
      *
-     * @return array<int, \Filament\Forms\Components\Component>
+     * @return array<int, Component>
      */
     protected function getNotificationPreferenceFormComponents(): array
     {

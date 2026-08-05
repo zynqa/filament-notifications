@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Zynqa\FilamentNotifications\Services;
 
 use Illuminate\Support\Facades\Log;
+use Throwable;
 use Zynqa\FilamentNotifications\Contracts\Subscribable;
 use Zynqa\FilamentNotifications\Models\AdminNotification;
 use Zynqa\FilamentNotifications\Models\EntitySubscription;
@@ -113,7 +114,7 @@ class SubscriptionNotificationService
                 recipientIds: $user->id,
                 deliveryMethod: $channel,
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Failed to notify subscriber', [
                 'user_id' => $user->id,
                 'entity_type' => $entity::getSubscribableType(),

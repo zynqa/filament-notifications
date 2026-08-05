@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Config;
@@ -25,7 +26,7 @@ class NotificationPreference extends Model
 
     public function user(): BelongsTo
     {
-        $userModel = Config::get('auth.providers.users.model', \App\Models\User::class);
+        $userModel = Config::get('auth.providers.users.model', User::class);
 
         return $this->belongsTo($userModel);
     }

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource\RelationManagers;
 
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -15,23 +17,23 @@ class RecipientsRelationManager extends RelationManager
 
     protected static ?string $title = 'Recipients';
 
-    protected static ?string $icon = 'heroicon-o-users';
+    protected static string|\BackedEnum|null $icon = 'heroicon-o-users';
 
     public function table(Table $table): Table
     {
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
 
-                Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('pivot.read_at')
+                IconColumn::make('pivot.read_at')
                     ->label('Read Status')
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
@@ -40,17 +42,17 @@ class RecipientsRelationManager extends RelationManager
                     ->falseColor('warning')
                     ->tooltip(fn ($record): string => $record->pivot->read_at ? 'Read' : 'Unread'),
 
-                Tables\Columns\TextColumn::make('pivot.read_at')
+                TextColumn::make('pivot.read_at')
                     ->label('Read At')
                     ->dateTime()
                     ->placeholder('Not read yet'),
 
-                Tables\Columns\TextColumn::make('pivot.created_at')
+                TextColumn::make('pivot.created_at')
                     ->label('Received At')
                     ->dateTime(),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('read_at')
+                TernaryFilter::make('read_at')
                     ->label('Read Status')
                     ->placeholder('All Recipients')
                     ->trueLabel('Read')
@@ -63,10 +65,10 @@ class RecipientsRelationManager extends RelationManager
             ->headerActions([
                 // No create action - recipients are managed from the main form
             ])
-            ->actions([
+            ->recordActions([
                 // No edit/delete actions for individual recipients
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 // No bulk actions
             ])
             ->emptyStateHeading('No Recipients')

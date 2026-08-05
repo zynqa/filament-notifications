@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource\Pages;
 
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource;
 
@@ -17,8 +18,8 @@ class EditAdminNotification extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\ViewAction::make(),
-            Actions\DeleteAction::make(),
+            ViewAction::make(),
+            DeleteAction::make(),
         ];
     }
 

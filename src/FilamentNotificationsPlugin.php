@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\HtmlString;
+use Throwable;
 use Zynqa\FilamentNotifications\Filament\Pages\ManageEntityTypeSettings;
 use Zynqa\FilamentNotifications\Filament\Pages\MySubscriptions;
 use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource;
@@ -162,7 +163,7 @@ class FilamentNotificationsPlugin implements Plugin
                     );
                 }
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Silently fail on fresh installs before migrations run
         }
     }

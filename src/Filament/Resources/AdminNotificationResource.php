@@ -7,24 +7,43 @@ namespace Zynqa\FilamentNotifications\Filament\Resources;
 use App\Models\User;
 use App\Settings\GeneralSettings;
 use Carbon\Carbon;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
-use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource\Pages;
-use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource\RelationManagers;
+use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource\Pages\CreateAdminNotification;
+use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource\Pages\EditAdminNotification;
+use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource\Pages\ListAdminNotifications;
+use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource\Pages\ViewAdminNotification;
+use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource\RelationManagers\RecipientsRelationManager;
 use Zynqa\FilamentNotifications\Models\AdminNotification;
 
 class AdminNotificationResource extends Resource
 {
     protected static ?string $model = AdminNotification::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-bell-alert';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-bell-alert';
 
     protected static ?string $navigationLabel = 'Notifications';
 
@@ -42,25 +61,25 @@ class AdminNotificationResource extends Resource
         return Config::get('filament-notifications.navigation.sort', 3);
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
         $userModel = Config::get('auth.providers.users.model', User::class);
 
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Notification Content')
+        return $schema
+            ->components([
+                Section::make('Notification Content')
                     ->schema([
-                        Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->required()
                             ->maxLength(255)
                             ->columnSpanFull(),
 
-                        Forms\Components\Textarea::make('body')
+                        Textarea::make('body')
                             ->required()
                             ->rows(5)
                             ->columnSpanFull(),
 
-                        Forms\Components\TextInput::make('url')
+                        TextInput::make('url')
                             ->label('Action URL (Optional)')
                             ->url()
                             ->placeholder('https://example.com/page')
@@ -68,10 +87,10 @@ class AdminNotificationResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make('Delivery Options')
+                Section::make('Delivery Options')
                     ->description('Choose how this notification will be delivered to recipients.')
                     ->schema([
-                        Forms\Components\Radio::make('delivery_method')
+                        Radio::make('delivery_method')
                             ->label('How should this notification be delivered?')
                             ->options([
                                 'database' => 'Database Notification Only',
@@ -91,25 +110,25 @@ class AdminNotificationResource extends Resource
                     ->collapsible()
                     ->hidden(fn (?AdminNotification $record) => $record?->isSent() ?? false),
 
-                Forms\Components\Section::make('Notification Appearance')
+                Section::make('Notification Appearance')
                     ->schema([
-                        Forms\Components\Select::make('notification_type')
+                        Select::make('notification_type')
                             ->label('Type')
                             ->options(AdminNotification::getNotificationTypeOptions())
                             ->default('info')
                             ->required()
                             ->native(false)
                             ->live()
-                            ->afterStateUpdated(fn (string $state, Forms\Set $set) => $set('icon_color', $state)),
+                            ->afterStateUpdated(fn (string $state, Set $set) => $set('icon_color', $state)),
 
-                        Forms\Components\Select::make('icon')
+                        Select::make('icon')
                             ->options(Config::get('filament-notifications.default_icons', []))
                             ->default('heroicon-o-bell')
                             ->searchable()
                             ->required()
                             ->native(false),
 
-                        Forms\Components\Select::make('icon_color')
+                        Select::make('icon_color')
                             ->label('Icon Color')
                             ->options(AdminNotification::getIconColorOptions())
                             ->default('info')
@@ -118,9 +137,9 @@ class AdminNotificationResource extends Resource
                     ])
                     ->columns(3),
 
-                Forms\Components\Section::make('Recipients')
+                Section::make('Recipients')
                     ->schema([
-                        Forms\Components\Select::make('recipient_user_ids')
+                        Select::make('recipient_user_ids')
                             ->label('Select Users to Notify')
                             ->multiple()
                             ->searchable()
@@ -138,13 +157,13 @@ class AdminNotificationResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
                     ->limit(20),
 
-                Tables\Columns\BadgeColumn::make('notification_type')
+                BadgeColumn::make('notification_type')
                     ->label('Type')
                     ->colors([
                         'info' => 'info',
@@ -154,28 +173,28 @@ class AdminNotificationResource extends Resource
                     ])
                     ->formatStateUsing(fn (string $state): string => ucfirst($state)),
 
-                Tables\Columns\IconColumn::make('icon')
+                IconColumn::make('icon')
                     ->icon(fn (AdminNotification $record): string => $record->icon),
 
-                Tables\Columns\TextColumn::make('recipients_count')
+                TextColumn::make('recipients_count')
                     ->label('Recipients')
                     ->counts('recipients')
                     ->badge()
                     ->color('gray'),
 
-                Tables\Columns\TextColumn::make('read_count')
+                TextColumn::make('read_count')
                     ->label('Read')
                     ->getStateUsing(fn (AdminNotification $record): int => $record->readRecipients()->count())
                     ->badge()
                     ->color('success'),
 
-                Tables\Columns\TextColumn::make('unread_count')
+                TextColumn::make('unread_count')
                     ->label('Unread')
                     ->getStateUsing(fn (AdminNotification $record): int => $record->unreadRecipients()->count())
                     ->badge()
                     ->color('warning'),
 
-                Tables\Columns\BadgeColumn::make('delivery_method')
+                BadgeColumn::make('delivery_method')
                     ->label('Delivery')
                     ->colors([
                         'gray' => 'database',
@@ -194,7 +213,7 @@ class AdminNotificationResource extends Resource
                         default => ucfirst($state),
                     }),
 
-                Tables\Columns\IconColumn::make('sent_at')
+                IconColumn::make('sent_at')
                     ->label('Status')
                     ->boolean()
                     ->trueIcon('heroicon-o-paper-airplane')
@@ -203,7 +222,7 @@ class AdminNotificationResource extends Resource
                     ->falseColor('gray')
                     ->tooltip(fn (AdminNotification $record): string => $record->isSent() ? 'Sent' : 'Draft'),
 
-                Tables\Columns\TextColumn::make('creator.name')
+                TextColumn::make('creator.name')
                     ->label('Created By')
                     ->formatStateUsing(fn ($state, AdminNotification $record): string => $record->source === 'system' ? 'System' : ($state ?? '—'))
                     ->badge()
@@ -211,7 +230,7 @@ class AdminNotificationResource extends Resource
                     ->sortable()
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('sent_at')
+                TextColumn::make('sent_at')
                     ->label('Sent At')
                     ->formatStateUsing(fn ($state): string => $state
                         ? Carbon::parse($state)->format(app(GeneralSettings::class)->date_format.' H:i')
@@ -220,17 +239,17 @@ class AdminNotificationResource extends Resource
                     ->sortable()
                     ->placeholder('Not sent yet'),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('notification_type')
+                SelectFilter::make('notification_type')
                     ->label('Type')
                     ->options(AdminNotification::getNotificationTypeOptions()),
 
-                Tables\Filters\TernaryFilter::make('sent_at')
+                TernaryFilter::make('sent_at')
                     ->label('Status')
                     ->placeholder('All Notifications')
                     ->trueLabel('Sent')
@@ -240,12 +259,12 @@ class AdminNotificationResource extends Resource
                         false: fn (Builder $query) => $query->draft(),
                     ),
 
-                Tables\Filters\Filter::make('created_by_me')
+                Filter::make('created_by_me')
                     ->label('Created by Me')
                     ->query(fn (Builder $query): Builder => $query->where('created_by', Auth::id())),
             ])
-            ->actions([
-                Tables\Actions\Action::make('send')
+            ->recordActions([
+                Action::make('send')
                     ->icon('heroicon-o-paper-airplane')
                     ->color('success')
                     ->requiresConfirmation()
@@ -264,17 +283,17 @@ class AdminNotificationResource extends Resource
                     })
                     ->visible(fn (AdminNotification $record): bool => $record->isDraft()),
 
-                Tables\Actions\ViewAction::make(),
+                ViewAction::make(),
 
-                Tables\Actions\EditAction::make()
+                EditAction::make()
                     ->visible(fn (AdminNotification $record): bool => $record->isDraft()),
 
-                Tables\Actions\DeleteAction::make()
+                DeleteAction::make()
                     ->visible(fn (AdminNotification $record): bool => $record->isDraft()),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -283,17 +302,17 @@ class AdminNotificationResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\RecipientsRelationManager::class,
+            RecipientsRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAdminNotifications::route('/'),
-            'create' => Pages\CreateAdminNotification::route('/create'),
-            'view' => Pages\ViewAdminNotification::route('/{record}'),
-            'edit' => Pages\EditAdminNotification::route('/{record}/edit'),
+            'index' => ListAdminNotifications::route('/'),
+            'create' => CreateAdminNotification::route('/create'),
+            'view' => ViewAdminNotification::route('/{record}'),
+            'edit' => EditAdminNotification::route('/{record}/edit'),
         ];
     }
 }

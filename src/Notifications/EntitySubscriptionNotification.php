@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications\Notifications;
 
-use Filament\Notifications\Actions\Action;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Throwable;
 use Zynqa\FilamentNotifications\Contracts\Subscribable;
 use Zynqa\FilamentNotifications\Models\EntityTypeSetting;
 use Zynqa\FilamentNotifications\Services\MailTemplateService;
@@ -66,7 +67,7 @@ class EntitySubscriptionNotification extends Notification
             try {
                 $settings = app(NotificationSettings::class);
                 $templateName = $settings->default_email_template;
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $templateName = 'default.blade.php';
             }
         }

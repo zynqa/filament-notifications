@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications\Filament\Pages;
 
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Tables\Actions\Action as TableAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Throwable;
 use Zynqa\FilamentNotifications\FilamentNotificationsPlugin;
 use Zynqa\FilamentNotifications\Models\EntitySubscription;
 use Zynqa\FilamentNotifications\Support\NotificationChannelResolver;
@@ -20,11 +21,11 @@ class MySubscriptions extends Page implements HasTable
 {
     use InteractsWithTable;
 
-    protected static ?string $navigationIcon = 'heroicon-o-bell-alert';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-bell-alert';
 
     protected static bool $shouldRegisterNavigation = false;
 
-    protected static string $view = 'filament-notifications::pages.my-subscriptions';
+    protected string $view = 'filament-notifications::pages.my-subscriptions';
 
     protected static ?string $title = 'My Subscriptions';
 
@@ -34,7 +35,7 @@ class MySubscriptions extends Page implements HasTable
     {
         try {
             return FilamentNotificationsPlugin::get()->getMySubscriptionsNavigationGroup();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
@@ -43,7 +44,7 @@ class MySubscriptions extends Page implements HasTable
     {
         try {
             return FilamentNotificationsPlugin::get()->getMySubscriptionsNavigationSort();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
@@ -88,8 +89,8 @@ class MySubscriptions extends Page implements HasTable
                     ->dateTime()
                     ->sortable(),
             ])
-            ->actions([
-                TableAction::make('view')
+            ->recordActions([
+                Action::make('view')
                     ->label('View Item')
                     ->icon('heroicon-o-arrow-top-right-on-square')
                     ->url(function (EntitySubscription $record): ?string {
@@ -106,7 +107,7 @@ class MySubscriptions extends Page implements HasTable
 
                         return $subscribable !== null && method_exists($subscribable, 'getSubscribableUrl') && $subscribable->getSubscribableUrl() !== null;
                     }),
-                TableAction::make('unsubscribe')
+                Action::make('unsubscribe')
                     ->label('Unsubscribe')
                     ->icon('heroicon-o-bell-slash')
                     ->color('danger')

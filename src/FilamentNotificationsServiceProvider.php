@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Zynqa\FilamentNotifications;
 
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
@@ -81,7 +82,7 @@ class FilamentNotificationsServiceProvider extends PackageServiceProvider
                     }
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Silently fail if there's any issue (e.g., database not set up yet)
         }
     }

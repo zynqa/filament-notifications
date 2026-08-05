@@ -6,13 +6,13 @@ namespace Zynqa\FilamentNotifications\Filament\Pages;
 
 use Filament\Actions\Action;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
 use Zynqa\FilamentNotifications\FilamentNotificationsPlugin;
 use Zynqa\FilamentNotifications\Models\EntityTypeSetting;
@@ -22,11 +22,11 @@ class ManageEntityTypeSettings extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    protected static ?string $navigationIcon = 'heroicon-o-envelope';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
 
     protected static bool $shouldRegisterNavigation = false;
 
-    protected static string $view = 'filament-notifications::pages.manage-entity-type-settings';
+    protected string $view = 'filament-notifications::pages.manage-entity-type-settings';
 
     protected static ?string $title = 'Notification Templates';
 
@@ -63,7 +63,7 @@ class ManageEntityTypeSettings extends Page implements HasForms
         $this->form->fill($formData);
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
         $plugin = FilamentNotificationsPlugin::get();
         $templateOptions = MailTemplateService::getAvailableTemplates();
@@ -100,8 +100,8 @@ class ManageEntityTypeSettings extends Page implements HasForms
                 ->content('No system email types registered. Register system email types via the plugin configuration.');
         }
 
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Subscription Notification Templates')
                     ->description('Email template used when notifying subscribers of entity changes. Leave blank to use the global default.')
                     ->schema($entityFields),

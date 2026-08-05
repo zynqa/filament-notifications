@@ -6,11 +6,15 @@ namespace Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResour
 
 use App\Settings\GeneralSettings;
 use Carbon\Carbon;
-use Filament\Actions;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\TextSize;
 use Zynqa\FilamentNotifications\Filament\Resources\AdminNotificationResource;
 
 class ViewAdminNotification extends ViewRecord
@@ -20,7 +24,7 @@ class ViewAdminNotification extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('send')
+            Action::make('send')
                 ->label('Send Notification')
                 ->icon('heroicon-o-paper-airplane')
                 ->color('success')
@@ -42,29 +46,29 @@ class ViewAdminNotification extends ViewRecord
                 })
                 ->visible(fn (): bool => $this->record->isDraft()),
 
-            Actions\EditAction::make()
+            EditAction::make()
                 ->visible(fn (): bool => $this->record->isDraft()),
 
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->visible(fn (): bool => $this->record->isDraft()),
         ];
     }
 
-    public function infolist(Infolist $infolist): Infolist
+    public function infolist(Schema $schema): Schema
     {
         return $infolist
             ->schema([
-                Infolists\Components\Section::make('Notification Details')
+                Section::make('Notification Details')
                     ->schema([
-                        Infolists\Components\TextEntry::make('title')
-                            ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
+                        TextEntry::make('title')
+                            ->size(TextSize::Large)
                             ->weight('bold'),
 
-                        Infolists\Components\TextEntry::make('body')
+                        TextEntry::make('body')
                             ->markdown()
                             ->columnSpanFull(),
 
-                        Infolists\Components\TextEntry::make('notification_type')
+                        TextEntry::make('notification_type')
                             ->label('Type')
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
@@ -74,16 +78,16 @@ class ViewAdminNotification extends ViewRecord
                                 default => 'info',
                             }),
 
-                        Infolists\Components\TextEntry::make('icon')
+                        TextEntry::make('icon')
                             ->formatStateUsing(fn (string $state): string => str_replace(['heroicon-o-', '-'], ['', ' '], $state))
                             ->badge(),
 
-                        Infolists\Components\TextEntry::make('icon_color')
+                        TextEntry::make('icon_color')
                             ->label('Icon Color')
                             ->badge()
                             ->color(fn (string $state): string => $state),
 
-                        Infolists\Components\TextEntry::make('url')
+                        TextEntry::make('url')
                             ->label('Action URL')
                             ->url(fn (?string $state): ?string => $state)
                             ->openUrlInNewTab()
@@ -92,33 +96,33 @@ class ViewAdminNotification extends ViewRecord
                     ])
                     ->columns(3),
 
-                Infolists\Components\Section::make('Status & Analytics')
+                Section::make('Status & Analytics')
                     ->schema([
-                        Infolists\Components\TextEntry::make('sent_at')
+                        TextEntry::make('sent_at')
                             ->label('Status')
                             ->formatStateUsing(fn ($state): string => $state ? 'Sent' : 'Draft')
                             ->badge()
                             ->color(fn ($state): string => $state ? 'success' : 'gray'),
 
-                        Infolists\Components\TextEntry::make('recipients_count')
+                        TextEntry::make('recipients_count')
                             ->label('Total Recipients')
                             ->getStateUsing(fn () => $this->record->recipients()->count())
                             ->badge()
                             ->color('gray'),
 
-                        Infolists\Components\TextEntry::make('read_count')
+                        TextEntry::make('read_count')
                             ->label('Read')
                             ->getStateUsing(fn () => $this->record->readRecipients()->count())
                             ->badge()
                             ->color('success'),
 
-                        Infolists\Components\TextEntry::make('unread_count')
+                        TextEntry::make('unread_count')
                             ->label('Unread')
                             ->getStateUsing(fn () => $this->record->unreadRecipients()->count())
                             ->badge()
                             ->color('warning'),
 
-                        Infolists\Components\TextEntry::make('sent_at')
+                        TextEntry::make('sent_at')
                             ->label('Sent At')
                             ->formatStateUsing(fn ($state): string => $state
                                 ? Carbon::parse($state)->format(app(GeneralSettings::class)->date_format.' H:i')
@@ -126,7 +130,7 @@ class ViewAdminNotification extends ViewRecord
                             )
                             ->placeholder('Not sent yet'),
 
-                        Infolists\Components\TextEntry::make('created_at')
+                        TextEntry::make('created_at')
                             ->label('Created At')
                             ->formatStateUsing(fn ($state): string => $state
                                 ? Carbon::parse($state)->format(app(GeneralSettings::class)->date_format.' H:i')
@@ -135,12 +139,12 @@ class ViewAdminNotification extends ViewRecord
                     ])
                     ->columns(3),
 
-                Infolists\Components\Section::make('Metadata')
+                Section::make('Metadata')
                     ->schema([
-                        Infolists\Components\TextEntry::make('creator.name')
+                        TextEntry::make('creator.name')
                             ->label('Created By'),
 
-                        Infolists\Components\TextEntry::make('updated_at')
+                        TextEntry::make('updated_at')
                             ->label('Last Updated')
                             ->formatStateUsing(fn ($state): string => $state
                                 ? Carbon::parse($state)->format(app(GeneralSettings::class)->date_format.' H:i')
