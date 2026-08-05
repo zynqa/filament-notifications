@@ -15,5 +15,9 @@
         'entity_label' => $entity_label ?? null,
         'event' => $event ?? null,
         'context' => $context ?? [],
+        // Null unless a notification names its own button. Templates fall back to a generic
+        // label, which suits the "something changed, go and look" notifications but not
+        // action emails like choosing a password.
+        'cta_label' => $cta_label ?? null,
     ]);
 @endphp
