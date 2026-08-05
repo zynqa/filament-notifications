@@ -13,8 +13,17 @@ use Zynqa\FilamentNotifications\Support\NotificationChannelResolver;
 
 class SubscriptionNotificationService
 {
-    public function notifySubscribersOf(Subscribable $entity, string $event, array $context = []): void
-    {
+    /**
+     * @param  array<int, int|string>  $excludeUserIds  Users who must not be notified — normally
+     *                                                  whoever performed the action, who does not
+     *                                                  need telling about their own change.
+     */
+    public function notifySubscribersOf(
+        Subscribable $entity,
+        string $event,
+        array $context = [],
+        array $excludeUserIds = [],
+    ): void {
         $subscriptions = EntitySubscription::query()
             ->where('subscribable_type', $entity::getSubscribableType())
             ->where('subscribable_id', $entity->getKey())
@@ -26,7 +35,7 @@ class SubscriptionNotificationService
         foreach ($subscriptions as $subscription) {
             $user = $subscription->user;
 
-            if (! $user) {
+            if (! $user || $this->isExcluded($user, $excludeUserIds)) {
                 continue;
             }
 
@@ -50,12 +59,23 @@ class SubscriptionNotificationService
      * only applies each user's channel preference and delivers.
      *
      * @param  iterable<object>  $users
+     * @param  array<int, int|string>  $excludeUserIds  Users who must not be notified — normally
+     *                                                  whoever performed the action.
      */
-    public function notifyUsersOf(Subscribable $entity, string $event, array $context = [], iterable $users = []): void
-    {
+    public function notifyUsersOf(
+        Subscribable $entity,
+        string $event,
+        array $context = [],
+        iterable $users = [],
+        array $excludeUserIds = [],
+    ): void {
         $type = $entity::getSubscribableType();
 
         foreach ($users as $user) {
+            if ($this->isExcluded($user, $excludeUserIds)) {
+                continue;
+            }
+
             $channel = method_exists($user, 'notificationChannelFor')
                 ? $user->notificationChannelFor($type)
                 : NotificationChannelResolver::DEFAULT;
@@ -101,6 +121,21 @@ class SubscriptionNotificationService
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Loose comparison on purpose: ids arrive as ints from Eloquent and as strings from
+     * request payloads, and an excluded user must stay excluded either way.
+     *
+     * @param  array<int, int|string>  $excludeUserIds
+     */
+    private function isExcluded(object $user, array $excludeUserIds): bool
+    {
+        if ($excludeUserIds === []) {
+            return false;
+        }
+
+        return in_array($user->id, $excludeUserIds);
     }
 
     private function buildBody(array $context): string
