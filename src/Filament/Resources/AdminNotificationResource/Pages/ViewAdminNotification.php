@@ -56,8 +56,8 @@ class ViewAdminNotification extends ViewRecord
 
     public function infolist(Schema $schema): Schema
     {
-        return $infolist
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Notification Details')
                     ->schema([
                         TextEntry::make('title')
