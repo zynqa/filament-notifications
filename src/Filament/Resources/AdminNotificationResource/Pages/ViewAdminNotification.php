@@ -57,6 +57,11 @@ class ViewAdminNotification extends ViewRecord
     public function infolist(Schema $schema): Schema
     {
         return $schema
+            // One column, explicitly. Filament 4 changed a view page's default schema to a
+            // two-column grid, so these sections sat side by side where they had always
+            // stacked. Each section already sets its own internal column count; the change
+            // here is only to the arrangement of the sections themselves.
+            ->columns(1)
             ->components([
                 Section::make('Notification Details')
                     ->schema([
