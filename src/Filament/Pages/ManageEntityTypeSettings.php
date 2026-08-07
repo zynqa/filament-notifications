@@ -11,6 +11,10 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\EmbeddedSchema;
+use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
@@ -25,8 +29,6 @@ class ManageEntityTypeSettings extends Page implements HasForms
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
 
     protected static bool $shouldRegisterNavigation = false;
-
-    protected string $view = 'filament-notifications::pages.manage-entity-type-settings';
 
     protected static ?string $title = 'Notification Templates';
 
@@ -61,6 +63,32 @@ class ManageEntityTypeSettings extends Page implements HasForms
         }
 
         $this->form->fill($formData);
+    }
+
+    /**
+     * Describe the page body as a schema.
+     *
+     * Filament 5 renders a page from $this->content and no longer ships the
+     * <x-filament-panels::form> / <x-filament-panels::form.actions> components the old
+     * blade used. Those had not merely moved — referencing them made the view impossible
+     * to compile at all, which surfaced as a failed `artisan view:cache` during deploy
+     * rather than as a broken page.
+     *
+     * This mirrors how Filament's own SettingsPage composes the same thing.
+     */
+    public function content(Schema $schema): Schema
+    {
+        return $schema->components([
+            Form::make([EmbeddedSchema::make('form')])
+                ->id('form')
+                ->livewireSubmitHandler('save')
+                ->footer([$this->getFormActionsContentComponent()]),
+        ]);
+    }
+
+    public function getFormActionsContentComponent(): Component
+    {
+        return Actions::make($this->getFormActions())->key('form-actions');
     }
 
     public function form(Schema $schema): Schema
